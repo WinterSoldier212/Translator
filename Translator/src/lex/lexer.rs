@@ -50,8 +50,8 @@ pub fn lexical_analysis(s: &str) -> Vec<Token> {
                 lex.push(ch);
                 while let Some(&temp_ch) = chr.peek() {
                     match temp_ch {
-                        _ if temp_ch.is_alphabetic() || temp_ch == '_' => lex.push(temp_ch),
-                        _ => break
+                        _ if temp_ch.is_alphabetic() || temp_ch.is_numeric() || temp_ch == '_' => lex.push(temp_ch),
+                        _ => break,
                     } chr.next();
                 }
 
@@ -77,39 +77,35 @@ pub fn lexical_analysis(s: &str) -> Vec<Token> {
                 }
             },
             _ if ch.is_numeric() => {
-                let mut points: u8 = 0;
+                let mut points: bool = false;
                 let mut lex = String::new(); 
                 lex.push(ch);
                 while let Some(&temp_ch) = chr.peek() {
                     match temp_ch {
-                        '.' => {
-                            points += 1; 
-                            lex.push(temp_ch);
-                            
-                            if points > 1 { 
-                                panic!(); 
+                        _ if temp_ch == '.' => {
+                            if points {
+                                panic!();
                             }
+                            lex.push(temp_ch);
+                            points = true;
                         },
                         _ if temp_ch.is_numeric() => lex.push(temp_ch),
                         _ => break
                     } chr.next();
                 }
 
-                match points  { 
-                    0 => match lex.parse::<i32>() {
+                if !points {
+                    match lex.parse::<i32>() {
                         Ok(num) => tokens.push(Token::IntLit { i: num }),
                         Err(_) => panic!(),
-                    },
-                    1 => match lex.parse::<f64>() {
+                    }
+                } else { 
+                    match lex.parse::<f64>() {
                         Ok(num) => tokens.push(Token::DoubleLit { f: num }),
                         Err(_) => panic!(),
-                    },
-                    _ => panic!()
+                    }
                 }
-            }
-
-
-
+            },
             _ => panic!(),
         }
     }
